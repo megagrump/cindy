@@ -75,7 +75,7 @@ function cindy.color2raw(r, g, b, a)
 		return cindy.table2raw(r)
 	end
 
-	return rgba2raw(r, g, b, a)
+	return cindy.rgba2raw(r, g, b, a)
 end
 
 -- convert RGBA values or table from [0-255] to [0-1]
