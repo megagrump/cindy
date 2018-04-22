@@ -5,23 +5,23 @@ cindy adds functions to LÖVE 11.x that accept/return colors in the [0-255] rang
 [0.0-1.0] range.
 
 In love.graphics:
-- `rawClear`
-- `getRawColor`, `setRawColor`
-- `getRawBackgroundColor`, `setRawBackgroundColor`
-- `getRawColorMask`, `setRawColorMask`
+- `clearBytes`
+- `getColorBytes`, `setColorBytes`
+- `getBackgroundColorBytes`, `setBackgroundColorBytes`
+- `getColorMaskBytes`, `setColorMaskBytes`
 
 In ImageData:
-- `getRawPixel`, `setRawPixel`
-- `mapRawPixel`
+- `getPixelBytes`, `setPixelBytes`
+- `mapPixelBytes`
 
 In ParticleSystem:
-- `setRawColors`, `getRawColors`
+- `setColorsBytes`, `getColorsBytes`
 
 In SpriteBatch:
-- `getRawColor`, `setRawColor`
+- `getColorBytes`, `setColorBytes`
 
 In Shader:
-- `sendRawColor`
+- `sendColorBytes`
 
 These functions behave the same as their built-in counterparts, except for the different value range. Note that calling them has additional runtime costs in comparison to the original functions.
 

@@ -11,23 +11,23 @@ cindy adds functions to LÖVE 11.x that accept/return colors in the [0-255] rang
 [0.0-1.0] range.
 
 In love.graphics:
-- rawClear
-- getRawColor, setRawColor
-- getRawBackgroundColor, setRawBackgroundColor
-- getRawColorMask, setRawColorMask
+- clearBytes
+- getColorBytes, setColorBytes
+- getBackgroundColorBytes, setBackgroundColorBytes
+- getColorMaskBytes, setColorMaskBytes
 
 In ImageData:
-- getRawPixel, setRawPixel
-- mapRawPixel
+- getPixelBytes, setPixelBytes
+- mapPixelBytes
 
 In ParticleSystem:
-- setRawColors, getRawColors
+- setColorsBytes, getColorsBytes
 
 In SpriteBatch:
-- getRawColor, setRawColor
+- getColorBytes, setColorBytes
 
 In Shader:
-- sendRawColor
+- sendColorBytes
 
 These functions behave the same as their built-in counterparts, except for the different value range.
 Note that calling them has additional runtime costs.
@@ -54,93 +54,93 @@ local function round(v)
 end
 
 -- convert a single channel value from [0-1] to [0-255]
-function cindy.channel2raw(c)
+function cindy.channel2byte(c)
 	return round(c * 255)
 end
 
 -- convert a single channel value from [0-255] to [0-1]
-function cindy.raw2channel(c)
+function cindy.byte2channel(c)
 	return c / 255
 end
 
 -- convert RGBA values from [0-1] to [0-255]
-function cindy.rgba2raw(r, g, b, a)
+function cindy.rgba2bytes(r, g, b, a)
 	return round(r * 255), round(g * 255), round(b * 255), a and round(a * 255)
 end
 
 -- convert RGBA values from [0-255] to [0-1]
-function cindy.raw2rgba(r, g, b, a)
+function cindy.bytes2rgba(r, g, b, a)
 	return r / 255, g / 255, b / 255, a and a / 255
 end
 
 -- convert RGBA value table from [0-1] to [0-255]. returns a new table
-function cindy.table2raw(color)
-	return { cindy.rgba2raw(unpack(color)) }
+function cindy.table2bytes(color)
+	return { cindy.rgba2bytes(unpack(color)) }
 end
 
 -- convert RGBA value table from [0-255] to [0-1]. returns a new table
-function cindy.raw2table(color)
-	return { cindy.raw2rgba(unpack(color)) }
+function cindy.bytes2table(color)
+	return { cindy.bytes2rgba(unpack(color)) }
 end
 
 -- convert RGBA values or table from [0-1] to [0-255]. returns separate values
-function cindy.color2raw(r, g, b, a)
+function cindy.color2bytes(r, g, b, a)
 	if type(r) == 'table' then
 		r, g, b, a = unpack(r)
 	end
 
-	return cindy.rgba2raw(r, g, b, a)
+	return cindy.rgba2bytes(r, g, b, a)
 end
 
 -- convert RGBA values or table from [0-255] to [0-1]. returns separate values
-function cindy.raw2color(r, g, b, a)
+function cindy.bytes2color(r, g, b, a)
 	if type(r) == 'table' then
 		r, g, b, a = unpack(r)
 	end
 
-	return cindy.raw2rgba(r, g, b, a)
+	return cindy.bytes2rgba(r, g, b, a)
 end
 
 -- patch all LÖVE functions to accept colors in the [0-255] range
 function cindy.applyPatch()
-	gfx.clear, gfx.getColor, gfx.setColor = gfx.rawClear, gfx.getRawColor, gfx.setRawColor
-	gfx.getBackgroundColor, gfx.setBackgroundColor = gfx.getRawBackgroundColor, gfx.setRawBackgroundColor
-	gfx.getColorMask, gfx.setColorMask = gfx.getRawMaskColor, gfx.setRawMaskColor
-	ImageData.getPixel, ImageData.setPixel = ImageData.getRawPixel, ImageData.setRawPixel
-	ImageData.mapPixel = ImageData.mapRawPixel
-	ParticleSystem.getColors, ParticleSystem.setColors = ParticleSystem.getRawColors, ParticleSystem.setRawColors
-	SpriteBatch.getColor, SpriteBatch.setColor = SpriteBatch.getRawColor, SpriteBatch.setRawColor
-	Shader.sendColor = Shader.sendRawColor
+	gfx.clear, gfx.getColor, gfx.setColor = gfx.clearBytes, gfx.getColorBytes, gfx.setColorBytes
+	gfx.getBackgroundColor, gfx.setBackgroundColor = gfx.getBackgroundColorBytes, gfx.setBackgroundColorBytes
+	gfx.getColorMask, gfx.setColorMask = gfx.getMaskColorBytes, gfx.setMaskColorBytes
+	ImageData.getPixel, ImageData.setPixel = ImageData.getPixelBytes, ImageData.setPixelBytes
+	ImageData.mapPixel = ImageData.mapPixelBytes
+	ParticleSystem.getColors, ParticleSystem.setColors = ParticleSystem.getColorsBytes, ParticleSystem.setColorsBytes
+	SpriteBatch.getColor, SpriteBatch.setColor = SpriteBatch.getColorBytes, SpriteBatch.setColorBytes
+	Shader.sendColor = Shader.sendColorBytes
 	return cindy
 end
 
 ---------------------------------------------------------------------------------------------------------------------
 
-function gfx.getRawColor()
-	return cindy.rgba2raw(getColor())
+function gfx.getColorBytes()
+	return cindy.rgba2bytes(getColor())
 end
 
-function gfx.setRawColor(r, g, b, a)
-	return setColor(cindy.raw2color(r, g, b, a))
+function gfx.setColorBytes(r, g, b, a)
+	return setColor(cindy.bytes2color(r, g, b, a))
 end
 
-function gfx.getRawBackgroundColor()
-	return cindy.rgba2raw(getBackgroundColor())
+function gfx.getBackgroundColorBytes()
+	return cindy.rgba2bytes(getBackgroundColor())
 end
 
-function gfx.setRawBackgroundColor(r, g, b, a)
-	return setBackgroundColor(cindy.raw2color(r, g, b, a))
+function gfx.setBackgroundColorBytes(r, g, b, a)
+	return setBackgroundColor(cindy.bytes2color(r, g, b, a))
 end
 
-function gfx.getRawColorMask()
-	return cindy.rgba2raw(getColorMask())
+function gfx.getColorMaskBytes()
+	return cindy.rgba2bytes(getColorMask())
 end
 
-function gfx.setRawColorMask(r, g, b, a)
-	return setColorMask(cindy.raw2color(r, g, b, a))
+function gfx.setColorMaskBytes(r, g, b, a)
+	return setColorMask(cindy.bytes2color(r, g, b, a))
 end
 
-function gfx.rawClear(...)
+function gfx.clearBytes(...)
 	local args = {...}
 
 	if #args == 0 or type(args[1]) == 'boolean' then
@@ -149,7 +149,7 @@ function gfx.rawClear(...)
 
 	for i = 1, #args do
 		if type(args[i]) == 'table' then
-			args[i] = cindy.raw2table(args[i])
+			args[i] = cindy.bytes2table(args[i])
 		elseif type(args[i]) == 'number' then
 			args[i] = args[i] / 255
 		end
@@ -160,28 +160,28 @@ end
 
 ---------------------------------------------------------------------------------------------------------------------
 
-function ImageData:getRawPixel(x, y)
-	return cindy.rgba2raw(getPixel(self, x, y))
+function ImageData:getPixelBytes(x, y)
+	return cindy.rgba2bytes(getPixel(self, x, y))
 end
 
-function ImageData:setRawPixel(x, y, r, g, b, a)
-	return setPixel(self, x, y, cindy.raw2color(r, g, b, a))
+function ImageData:setPixelBytes(x, y, r, g, b, a)
+	return setPixel(self, x, y, cindy.bytes2color(r, g, b, a))
 end
 
-function ImageData:mapRawPixel(fn)
+function ImageData:mapPixelBytes(fn)
 	return mapPixel(self, function(x, y, r, g, b, a)
-		return cindy.raw2rgba(fn(x, y, cindy.rgba2raw(r, g, b, a)))
+		return cindy.bytes2rgba(fn(x, y, cindy.rgba2bytes(r, g, b, a)))
 	end)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
 
-function ParticleSystem:setRawColors(...)
+function ParticleSystem:setColorsBytes(...)
 	local args = {...}
 
 	if type(args[1]) == 'table' then
 		for i = 1, #args do
-			args[i] = cindy.raw2table(args[i])
+			args[i] = cindy.bytes2table(args[i])
 		end
 	else
 		for i = 1, #args do
@@ -192,12 +192,12 @@ function ParticleSystem:setRawColors(...)
 	return setParticleColors(self, unpack(args))
 end
 
-function ParticleSystem:getRawColors()
+function ParticleSystem:getColorsBytes()
 	local colors = { getParticleColors(self) }
 
 	for i = 1, #colors do
 		local rgba = colors[i]
-		rgba[1], rgba[2], rgba[3], rgba[4] = cindy.rgba2raw(unpack(rgba))
+		rgba[1], rgba[2], rgba[3], rgba[4] = cindy.rgba2bytes(unpack(rgba))
 	end
 
 	return colors
@@ -205,16 +205,16 @@ end
 
 ---------------------------------------------------------------------------------------------------------------------
 
-function SpriteBatch:getRawColor()
+function SpriteBatch:getColorBytes()
 	local r, g, b, a = getBatchColor(self)
 	if r then
-		return cindy.rgba2raw(r, g, b, a)
+		return cindy.rgba2bytes(r, g, b, a)
 	end
 end
 
-function SpriteBatch:setRawColor(r, g, b, a)
+function SpriteBatch:setColorBytes(r, g, b, a)
 	if r then
-		return setBatchColor(self, cindy.raw2color(r, g, b, a))
+		return setBatchColor(self, cindy.bytes2color(r, g, b, a))
 	end
 
 	return setBatchColor(self)
@@ -222,11 +222,11 @@ end
 
 ---------------------------------------------------------------------------------------------------------------------
 
-function Shader:sendRawColor(name, ...)
+function Shader:sendColorBytes(name, ...)
 	local colors = {...}
 
 	for i = 1, #colors do
-		colors[i] = cindy.raw2table(colors[i])
+		colors[i] = cindy.bytes2table(colors[i])
 	end
 
 	return sendColor(self, name, unpack(colors))
