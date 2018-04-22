@@ -26,22 +26,26 @@ In ParticleSystem:
 In SpriteBatch:
 - getRawColor, setRawColor
 
+In Shader:
+- sendRawColor
+
 These functions behave the same as their built-in counterparts, except for the different value range.
 Note that calling them has additional runtime costs.
 
-To replace all original functions, call cindy.applyPatch() at the start of the program: require('cindy').applyPatch()
-This effectively restores the pre-11.0 behavior.
+To replace all original functions, call cindy.applyPatch() at the start of the program: require('cindy').applyPatch() -
+this effectively restores the pre-11.0 behavior.
 
 -------------------------------------------------------------------------------------------------------------------]]
 
 local gfx, reg = love.graphics, debug.getregistry()
-local ImageData, ParticleSystem, SpriteBatch = reg.ImageData, reg.ParticleSystem, reg.SpriteBatch
+local ImageData, ParticleSystem, SpriteBatch, Shader = reg.ImageData, reg.ParticleSystem, reg.SpriteBatch, reg.Shader
 local clear, getColor, setColor = gfx.clear, gfx.getColor, gfx.setColor
 local getBackgroundColor, setBackgroundColor = gfx.getBackgroundColor, gfx.setBackgroundColor
 local getColorMask, setColorMask = gfx.getColorMask, gfx.setColorMask
 local getPixel, setPixel, mapPixel = ImageData.getPixel, ImageData.setPixel, ImageData.mapPixel
 local getParticleColors, setParticleColors = ParticleSystem.getColors, ParticleSystem.setColors
 local getBatchColor, setBatchColor = SpriteBatch.getColor, SpriteBatch.setColor
+local sendColor = Shader.sendColor
 
 ---------------------------------------------------------------------------------------------------------------------
 
@@ -106,7 +110,7 @@ function cindy.applyPatch()
 	ImageData.mapPixel = ImageData.mapRawPixel
 	ParticleSystem.getColors, ParticleSystem.setColors = ParticleSystem.getRawColors, ParticleSystem.setRawColors
 	SpriteBatch.getColor, SpriteBatch.setColor = SpriteBatch.getRawColor, SpriteBatch.setRawColor
-
+	Shader.sendColor = Shader.sendRawColor
 	return cindy
 end
 
@@ -214,6 +218,18 @@ function SpriteBatch:setRawColor(r, g, b, a)
 	end
 
 	return setBatchColor(self)
+end
+
+---------------------------------------------------------------------------------------------------------------------
+
+function Shader:sendRawColor(name, ...)
+	local colors = {...}
+
+	for i = 1, #colors do
+		colors[i] = cindy.raw2table(colors[i])
+	end
+
+	return sendColor(self, name, unpack(colors))
 end
 
 ---------------------------------------------------------------------------------------------------------------------

@@ -20,7 +20,9 @@ In ParticleSystem:
 In SpriteBatch:
 - `getRawColor`, `setRawColor`
 
-These functions behave the same as their built-in counterparts, except for the different value range.
-Note that calling them has additional runtime costs in comparison to the original functions.
+In Shader:
+- `sendRawColor`
+
+These functions behave the same as their built-in counterparts, except for the different value range. Note that calling them has additional runtime costs in comparison to the original functions.
 
 To replace all original functions, call `cindy.applyPatch()` at the start of the program: `require('cindy').applyPatch()`. This effectively restores the pre-11.0 behavior.
