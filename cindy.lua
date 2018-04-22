@@ -45,13 +45,23 @@ local getBatchColor, setBatchColor = SpriteBatch.getColor, SpriteBatch.setColor
 
 ---------------------------------------------------------------------------------------------------------------------
 
+local function round(v)
+	return math.floor(v + .5)
+end
+
+-- convert a single channel value from [0-1] to [0-255]
+function cindy.channel2raw(c)
+	return round(c * 255)
+end
+
+-- convert a single channel value from [0-255] to [0-1]
+function cindy.raw2channel(c)
+	return c / 255
+end
+
 -- convert RGBA values from [0-1] to [0-255]
 function cindy.rgba2raw(r, g, b, a)
-	return
-		math.floor(r * 255 + .5),
-		math.floor(g * 255 + .5),
-		math.floor(b * 255 + .5),
-		a and math.floor(a * 255 + .5)
+	return round(r * 255), round(g * 255), round(b * 255), a and round(a * 255)
 end
 
 -- convert RGBA values from [0-255] to [0-1]
@@ -59,29 +69,29 @@ function cindy.raw2rgba(r, g, b, a)
 	return r / 255, g / 255, b / 255, a and a / 255
 end
 
--- convert RGBA value table from [0-1] to [0-255]
+-- convert RGBA value table from [0-1] to [0-255]. returns a new table
 function cindy.table2raw(color)
 	return { cindy.rgba2raw(unpack(color)) }
 end
 
--- convert RGBA value table from [0-255] to [0-1]
+-- convert RGBA value table from [0-255] to [0-1]. returns a new table
 function cindy.raw2table(color)
 	return { cindy.raw2rgba(unpack(color)) }
 end
 
--- convert RGBA values or table from [0-1] to [0-255]
+-- convert RGBA values or table from [0-1] to [0-255]. returns separate values
 function cindy.color2raw(r, g, b, a)
 	if type(r) == 'table' then
-		return cindy.table2raw(r)
+		r, g, b, a = unpack(r)
 	end
 
 	return cindy.rgba2raw(r, g, b, a)
 end
 
--- convert RGBA values or table from [0-255] to [0-1]
+-- convert RGBA values or table from [0-255] to [0-1]. returns separate values
 function cindy.raw2color(r, g, b, a)
 	if type(r) == 'table' then
-		return cindy.raw2table(r)
+		r, g, b, a = unpack(r)
 	end
 
 	return cindy.raw2rgba(r, g, b, a)
@@ -96,6 +106,8 @@ function cindy.applyPatch()
 	ImageData.mapPixel = ImageData.mapRawPixel
 	ParticleSystem.getColors, ParticleSystem.setColors = ParticleSystem.getRawColors, ParticleSystem.setRawColors
 	SpriteBatch.getColor, SpriteBatch.setColor = SpriteBatch.getRawColor, SpriteBatch.setRawColor
+
+	return cindy
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -145,7 +157,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 
 function ImageData:getRawPixel(x, y)
-	return cindy.color2raw(getPixel(self, x, y))
+	return cindy.rgba2raw(getPixel(self, x, y))
 end
 
 function ImageData:setRawPixel(x, y, r, g, b, a)
@@ -154,7 +166,7 @@ end
 
 function ImageData:mapRawPixel(fn)
 	return mapPixel(self, function(x, y, r, g, b, a)
-		return raw2color(fn(x, y, rgba2raw(r, g, b, a)))
+		return cindy.raw2rgba(fn(x, y, cindy.rgba2raw(r, g, b, a)))
 	end)
 end
 
@@ -180,16 +192,20 @@ function ParticleSystem:getRawColors()
 	local colors = { getParticleColors(self) }
 
 	for i = 1, #colors do
-		colors[i] = math.floor(colors[i] * 255 + .5)
+		local rgba = colors[i]
+		rgba[1], rgba[2], rgba[3], rgba[4] = cindy.rgba2raw(unpack(rgba))
 	end
 
-	return unpack(colors)
+	return colors
 end
 
 ---------------------------------------------------------------------------------------------------------------------
 
 function SpriteBatch:getRawColor()
-	return cindy.rgba2raw(getBatchColor(self))
+	local r, g, b, a = getBatchColor(self)
+	if r then
+		return cindy.rgba2raw(r, g, b, a)
+	end
 end
 
 function SpriteBatch:setRawColor(r, g, b, a)
