@@ -73,20 +73,24 @@ function cindy.bytes2rgba(r, g, b, a)
 	return r / 255, g / 255, b / 255, a and a / 255
 end
 
--- convert RGBA value table from [0-1] to [0-255]. returns a new table
-function cindy.table2bytes(color)
-	return { cindy.rgba2bytes(unpack(color)) }
+-- convert RGBA value table from [0-1] to [0-255]. places the result in dest, if given
+function cindy.table2bytes(color, dest)
+	dest = dest or {}
+	dest[1], dest[2], dest[3], dest[4] = cindy.rgba2bytes(color[1], color[2], color[3], color[4])
+	return dest
 end
 
--- convert RGBA value table from [0-255] to [0-1]. returns a new table
-function cindy.bytes2table(color)
-	return { cindy.bytes2rgba(unpack(color)) }
+-- convert RGBA value table from [0-255] to [0-1]. places the result in dest, if given
+function cindy.bytes2table(color, dest)
+	dest = dest or {}
+	dest[1], dest[2], dest[3], dest[4] = cindy.bytes2rgba(color[1], color[2], color[3], color[4])
+	return dest
 end
 
 -- convert RGBA values or table from [0-1] to [0-255]. returns separate values
 function cindy.color2bytes(r, g, b, a)
 	if type(r) == 'table' then
-		r, g, b, a = unpack(r)
+		r, g, b, a = r[1], r[2], r[3], r[4]
 	end
 
 	return cindy.rgba2bytes(r, g, b, a)
@@ -95,7 +99,7 @@ end
 -- convert RGBA values or table from [0-255] to [0-1]. returns separate values
 function cindy.bytes2color(r, g, b, a)
 	if type(r) == 'table' then
-		r, g, b, a = unpack(r)
+		r, g, b, a = r[1], r[2], r[3], r[4]
 	end
 
 	return cindy.bytes2rgba(r, g, b, a)
@@ -111,10 +115,18 @@ function cindy.applyPatch()
 	ParticleSystem.getColors, ParticleSystem.setColors = ParticleSystem.getColorsBytes, ParticleSystem.setColorsBytes
 	SpriteBatch.getColor, SpriteBatch.setColor = SpriteBatch.getColorBytes, SpriteBatch.setColorBytes
 	Shader.sendColor = Shader.sendColorBytes
+
 	return cindy
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+
+local tempTables = {}
+for i = 1, 16 do
+	local temp = {}
+	for j = 1, i do temp[j] = {} end
+	tempTables[i] = temp
+end
 
 function gfx.getColorBytes()
 	return cindy.rgba2bytes(getColor())
@@ -142,14 +154,16 @@ end
 
 function gfx.clearBytes(...)
 	local args = {...}
+	local nargs = #args
 
-	if #args == 0 or type(args[1]) == 'boolean' then
+	if nargs == 0 or type(args[1]) == 'boolean' then
 		return clear(...)
 	end
 
-	for i = 1, #args do
+	local temp = tempTables[nargs]
+	for i = 1, nargs do
 		if type(args[i]) == 'table' then
-			args[i] = cindy.bytes2table(args[i])
+			args[i] = cindy.bytes2table(args[i], temp[i])
 		elseif type(args[i]) == 'number' then
 			args[i] = args[i] / 255
 		end
@@ -165,7 +179,7 @@ function ImageData:getPixelBytes(x, y)
 end
 
 function ImageData:setPixelBytes(x, y, r, g, b, a)
-	return setPixel(self, x, y, cindy.bytes2color(r, g, b, a))
+	return setPixel(self, x, y, cindy.bytes2rgba(r, g, b, a))
 end
 
 function ImageData:mapPixelBytes(fn)
@@ -177,14 +191,15 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 
 function ParticleSystem:setColorsBytes(...)
-	local args = {...}
+	local args, nargs = {...}, select('#', ...)
+	local temp = tempTables[nargs]
 
 	if type(args[1]) == 'table' then
-		for i = 1, #args do
-			args[i] = cindy.bytes2table(args[i])
+		for i = 1, nargs do
+			args[i] = cindy.bytes2table(args[i], temp[i])
 		end
 	else
-		for i = 1, #args do
+		for i = 1, nargs do
 			args[i] = args[i] / 255
 		end
 	end
@@ -194,19 +209,21 @@ end
 
 function ParticleSystem:getColorsBytes()
 	local colors = { getParticleColors(self) }
+	local ncolors = #colors
 
-	for i = 1, #colors do
+	for i = 1, ncolors do
 		local rgba = colors[i]
-		rgba[1], rgba[2], rgba[3], rgba[4] = cindy.rgba2bytes(unpack(rgba))
+		rgba[1], rgba[2], rgba[3], rgba[4] = cindy.rgba2bytes(rgba[1], rgba[2], rgba[3], rgba[4])
 	end
 
-	return colors
+	return unpack(colors)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
 
 function SpriteBatch:getColorBytes()
 	local r, g, b, a = getBatchColor(self)
+
 	if r then
 		return cindy.rgba2bytes(r, g, b, a)
 	end
@@ -223,10 +240,11 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 
 function Shader:sendColorBytes(name, ...)
-	local colors = {...}
+	local colors, ncolors = {...}, select('#', ...)
+	local temp = tempTables[ncolors]
 
-	for i = 1, #colors do
-		colors[i] = cindy.bytes2table(colors[i])
+	for i = 1, ncolors do
+		colors[i] = cindy.bytes2table(colors[i], temp[i])
 	end
 
 	return sendColor(self, name, unpack(colors))
