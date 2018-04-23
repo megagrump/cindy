@@ -121,12 +121,7 @@ end
 
 ---------------------------------------------------------------------------------------------------------------------
 
-local tempTables = {}
-for i = 1, 8 do
-	local temp = {}
-	for j = 1, i do temp[j] = {} end
-	tempTables[i] = temp
-end
+local tempTables = { {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {} }
 
 function gfx.getColorBytes()
 	return cindy.rgba2bytes(getColor())
@@ -159,10 +154,10 @@ function gfx.clearBytes(...)
 		return clear(...)
 	end
 
-	local args, temp = {...}, tempTables[nargs]
+	local args = {...}
 	for i = 1, nargs do
 		if type(args[i]) == 'table' then
-			args[i] = cindy.bytes2table(args[i], temp[i])
+			args[i] = cindy.bytes2table(args[i], tempTables[i])
 		elseif type(args[i]) == 'number' then
 			args[i] = args[i] / 255
 		end
@@ -191,11 +186,10 @@ end
 
 function ParticleSystem:setColorsBytes(...)
 	local args, nargs = {...}, select('#', ...)
-	local temp = tempTables[nargs]
 
 	if type(args[1]) == 'table' then
 		for i = 1, nargs do
-			args[i] = cindy.bytes2table(args[i], temp[i])
+			args[i] = cindy.bytes2table(args[i], tempTables[i])
 		end
 	else
 		for i = 1, nargs do
@@ -240,10 +234,9 @@ end
 
 function Shader:sendColorBytes(name, ...)
 	local colors, ncolors = {...}, select('#', ...)
-	local temp = tempTables[ncolors]
 
 	for i = 1, ncolors do
-		colors[i] = cindy.bytes2table(colors[i], temp[i])
+		colors[i] = cindy.bytes2table(colors[i], tempTables[i])
 	end
 
 	return sendColor(self, name, unpack(colors))
