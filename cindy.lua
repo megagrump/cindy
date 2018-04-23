@@ -153,14 +153,13 @@ function gfx.setColorMaskBytes(r, g, b, a)
 end
 
 function gfx.clearBytes(...)
-	local args = {...}
-	local nargs = #args
+	local nargs = select('#', ...)
 
-	if nargs == 0 or type(args[1]) == 'boolean' then
+	if nargs == 0 or type(select(1, ...)) == 'boolean' then
 		return clear(...)
 	end
 
-	local temp = tempTables[nargs]
+	local args, temp = {...}, tempTables[nargs]
 	for i = 1, nargs do
 		if type(args[i]) == 'table' then
 			args[i] = cindy.bytes2table(args[i], temp[i])
