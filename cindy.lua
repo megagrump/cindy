@@ -1,5 +1,5 @@
 local cindy = {
-	_VERSION     = 'cindy 0.1',
+	_VERSION     = 'cindy 0.1.1',
 	_LICENSE     = 'WTFPL, http://www.wtfpl.net',
 	_URL         = 'https://github.com/megagrump/cindy',
 	_DESCRIPTION = 'True Colors for LÖVE 11',
@@ -149,19 +149,18 @@ end
 
 function gfx.clearBytes(...)
 	local nargs = select('#', ...)
+	if nargs == 0 then return clear() end
 
-	if nargs == 0 or type(select(1, ...)) == 'boolean' then
-		return clear(...)
-	end
+	local argtype = type(select(1, ...))
+	if argtype == 'boolean' then return clear(...) end
 
-	local args = {...}
-	for i = 1, nargs do
-		if type(args[i]) == 'table' then
-			args[i] = cindy.bytes2table(args[i], tempTables[i])
-		elseif type(args[i]) == 'number' then
-			args[i] = args[i] / 255
-		end
-	end
+	local converter = argtype == 'table' and cindy.bytes2table or cindy.byte2channel
+	local args, i = {...}, 1
+
+	repeat
+		args[i] = converter(args[i], tempTables[i])
+		i = i + 1
+	until type(args[i]) ~= argtype
 
 	return clear(unpack(args))
 end
