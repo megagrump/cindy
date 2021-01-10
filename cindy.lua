@@ -1,5 +1,5 @@
 local cindy = {
-	_VERSION     = 'cindy 0.1.1',
+	_VERSION     = 'cindy 0.1.2',
 	_LICENSE     = 'WTFPL, http://www.wtfpl.net',
 	_URL         = 'https://github.com/megagrump/cindy',
 	_DESCRIPTION = 'True Colors for LÖVE 11',
@@ -14,7 +14,6 @@ In love.graphics:
 - clearBytes
 - getColorBytes, setColorBytes
 - getBackgroundColorBytes, setBackgroundColorBytes
-- getColorMaskBytes, setColorMaskBytes
 
 In ImageData:
 - getPixelBytes, setPixelBytes
@@ -41,7 +40,6 @@ local gfx, reg = love.graphics, debug.getregistry()
 local ImageData, ParticleSystem, SpriteBatch, Shader = reg.ImageData, reg.ParticleSystem, reg.SpriteBatch, reg.Shader
 local clear, getColor, setColor = gfx.clear, gfx.getColor, gfx.setColor
 local getBackgroundColor, setBackgroundColor = gfx.getBackgroundColor, gfx.setBackgroundColor
-local getColorMask, setColorMask = gfx.getColorMask, gfx.setColorMask
 local getPixel, setPixel, mapPixel = ImageData.getPixel, ImageData.setPixel, ImageData.mapPixel
 local getParticleColors, setParticleColors = ParticleSystem.getColors, ParticleSystem.setColors
 local getBatchColor, setBatchColor = SpriteBatch.getColor, SpriteBatch.setColor
@@ -109,7 +107,6 @@ end
 function cindy.applyPatch()
 	gfx.clear, gfx.getColor, gfx.setColor = gfx.clearBytes, gfx.getColorBytes, gfx.setColorBytes
 	gfx.getBackgroundColor, gfx.setBackgroundColor = gfx.getBackgroundColorBytes, gfx.setBackgroundColorBytes
-	gfx.getColorMask, gfx.setColorMask = gfx.getMaskColorBytes, gfx.setMaskColorBytes
 	ImageData.getPixel, ImageData.setPixel = ImageData.getPixelBytes, ImageData.setPixelBytes
 	ImageData.mapPixel = ImageData.mapPixelBytes
 	ParticleSystem.getColors, ParticleSystem.setColors = ParticleSystem.getColorsBytes, ParticleSystem.setColorsBytes
@@ -137,14 +134,6 @@ end
 
 function gfx.setBackgroundColorBytes(r, g, b, a)
 	return setBackgroundColor(cindy.bytes2color(r, g, b, a))
-end
-
-function gfx.getColorMaskBytes()
-	return cindy.rgba2bytes(getColorMask())
-end
-
-function gfx.setColorMaskBytes(r, g, b, a)
-	return setColorMask(cindy.bytes2color(r, g, b, a))
 end
 
 function gfx.clearBytes(...)

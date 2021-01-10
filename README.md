@@ -1,14 +1,13 @@
 # cindy
 True Colors for LÖVE 11
 
-cindy adds functions to LÖVE 11.x that accept/return colors in the [0-255] range instead of the newly introduced
-[0.0-1.0] range.
+cindy adds functions to LÖVE 11.x that accept/return colors in the [0,255] range instead of the newly introduced
+[0.0,1.0] range.
 
 In love.graphics:
 - `clearBytes`
 - `getColorBytes`, `setColorBytes`
 - `getBackgroundColorBytes`, `setBackgroundColorBytes`
-- `getColorMaskBytes`, `setColorMaskBytes`
 
 In ImageData:
 - `getPixelBytes`, `setPixelBytes`
